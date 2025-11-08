@@ -159,28 +159,62 @@ function renderUIState(uiState) {
     return;
   }
 
+  // Create a map of all elements for quick lookup
+  const elementMap = {};
+  uiState.elements.forEach((elem) => {
+    elementMap[elem.id] = elem;
+  });
+
   // Clear previous UI elements
   if (elements.uiContainer) {
     elements.uiContainer.innerHTML = "";
     uiElements = {};
   }
 
-  // Render each element
+  // Find and render root-level elements (those with no parent_id)
   uiState.elements.forEach((elem) => {
-    if (elem.type === "text") {
-      renderTextElement(elem);
-    } else if (elem.type === "button") {
-      renderButtonElement(elem);
-    } else if (elem.type === "container") {
-      renderContainerElement(elem);
+    if (!elem.parent_id) {
+      renderElementAndChildren(elem, elements.uiContainer, elementMap);
     }
   });
 }
 
 /**
- * Render a text element
+ * Render an element and its children recursively
  */
-function renderTextElement(elem) {
+function renderElementAndChildren(elem, parentContainer, elementMap) {
+  let domElement;
+
+  if (elem.type === "text") {
+    domElement = createTextElement(elem);
+  } else if (elem.type === "button") {
+    domElement = createButtonElement(elem);
+  } else if (elem.type === "container") {
+    domElement = createContainerElement(elem);
+  }
+
+  if (!domElement) {
+    return;
+  }
+
+  // Add to parent container
+  parentContainer.appendChild(domElement);
+  uiElements[elem.id] = domElement;
+
+  // If this is a container, render its children
+  if (elem.type === "container") {
+    Object.values(elementMap)
+      .filter((child) => child.parent_id === elem.id)
+      .forEach((child) => {
+        renderElementAndChildren(child, domElement, elementMap);
+      });
+  }
+}
+
+/**
+ * Create a text element (returns DOM element without adding to container)
+ */
+function createTextElement(elem) {
   const textDiv = document.createElement("div");
   textDiv.className = "ui-element ui-text";
   textDiv.id = `elem-${elem.id}`;
@@ -196,14 +230,13 @@ function renderTextElement(elem) {
     }
   }
 
-  elements.uiContainer.appendChild(textDiv);
-  uiElements[elem.id] = textDiv;
+  return textDiv;
 }
 
 /**
- * Render a button element
+ * Create a button element (returns DOM element without adding to container)
  */
-function renderButtonElement(elem) {
+function createButtonElement(elem) {
   const button = document.createElement("button");
   button.className = "ui-element ui-button";
   button.id = `elem-${elem.id}`;
@@ -224,14 +257,14 @@ function renderButtonElement(elem) {
     console.log("Button clicked:", elem.id, "callback_id:", callbackId);
     sendButtonCallback(callbackId);
   });
-  elements.uiContainer.appendChild(button);
-  uiElements[elem.id] = button;
+
+  return button;
 }
 
 /**
- * Render a container element with flex layout
+ * Create a container element with flex layout (returns DOM element without adding to container)
  */
-function renderContainerElement(elem) {
+function createContainerElement(elem) {
   const container = document.createElement("div");
   container.className = "ui-element ui-container";
   container.id = `elem-${elem.id}`;
@@ -250,8 +283,7 @@ function renderContainerElement(elem) {
     }
   }
 
-  elements.uiContainer.appendChild(container);
-  uiElements[elem.id] = container;
+  return container;
 }
 
 /**

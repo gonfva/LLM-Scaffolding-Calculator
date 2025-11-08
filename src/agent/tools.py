@@ -27,6 +27,10 @@ DISPLAY_TEXT_TOOL: ToolDefinition = {
                 "type": "string",
                 "description": "Unique identifier for this text element (e.g., 'text_1', 'result')",
             },
+            "parent_id": {
+                "type": "string",
+                "description": "Parent container ID to place this element in (optional, defaults to root)",
+            },
             "flex_grow": {
                 "type": "number",
                 "description": "CSS flex-grow property for layout (0-1, default 0)",
@@ -59,6 +63,10 @@ CREATE_BUTTON_TOOL: ToolDefinition = {
                 "type": "string",
                 "description": "Identifier sent back to the agent when button is clicked (e.g., 'on_submit', 'increment')",
             },
+            "parent_id": {
+                "type": "string",
+                "description": "Parent container ID to place this button in (optional, defaults to root)",
+            },
             "flex_grow": {
                 "type": "number",
                 "description": "CSS flex-grow property for layout (0-1, default 0)",
@@ -88,6 +96,10 @@ CREATE_CONTAINER_TOOL: ToolDefinition = {
                 "enum": ["row", "column"],
                 "description": "Direction of flex layout (row for horizontal, column for vertical)",
             },
+            "parent_id": {
+                "type": "string",
+                "description": "Parent container ID to place this container in (optional, defaults to root)",
+            },
             "justify_content": {
                 "type": "string",
                 "enum": ["flex-start", "center", "flex-end", "space-between", "space-around"],
@@ -99,6 +111,38 @@ CREATE_CONTAINER_TOOL: ToolDefinition = {
             },
         },
         "required": ["id", "flex_direction"],
+    },
+}
+
+# Update element tool
+UPDATE_ELEMENT_TOOL: ToolDefinition = {
+    "name": "update_element",
+    "description": "Update properties of an existing element. Preserves element type, parent, and unspecified layout properties.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "id": {
+                "type": "string",
+                "description": "ID of the element to update",
+            },
+            "content": {
+                "type": "string",
+                "description": "New content for text elements or label for buttons",
+            },
+            "callback_id": {
+                "type": "string",
+                "description": "New callback_id for button elements",
+            },
+            "flex_grow": {
+                "type": "number",
+                "description": "New flex_grow value",
+            },
+            "width": {
+                "type": "string",
+                "description": "New width value",
+            },
+        },
+        "required": ["id"],
     },
 }
 
@@ -125,4 +169,10 @@ APPLY_THEME_TOOL: ToolDefinition = {
 }
 
 # All available tools
-TOOLS = [DISPLAY_TEXT_TOOL, CREATE_BUTTON_TOOL, CREATE_CONTAINER_TOOL, APPLY_THEME_TOOL]
+TOOLS = [
+    DISPLAY_TEXT_TOOL,
+    CREATE_BUTTON_TOOL,
+    CREATE_CONTAINER_TOOL,
+    UPDATE_ELEMENT_TOOL,
+    APPLY_THEME_TOOL,
+]

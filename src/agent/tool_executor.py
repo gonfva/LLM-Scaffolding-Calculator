@@ -37,6 +37,8 @@ class ToolExecutor:
             return self._execute_create_button(tool_input)
         elif tool_name == "create_container":
             return self._execute_create_container(tool_input)
+        elif tool_name == "update_element":
+            return self._execute_update_element(tool_input)
         elif tool_name == "apply_theme":
             return self._execute_apply_theme(tool_input)
         else:
@@ -58,10 +60,13 @@ class ToolExecutor:
             if not content or not element_id:
                 return "Error: display_text requires 'content' and 'id'"
 
+            parent_id = tool_input.get("parent_id")
             flex_grow = tool_input.get("flex_grow")
             width = tool_input.get("width")
 
-            self.ui_state.add_text(content, element_id, flex_grow=flex_grow, width=width)
+            self.ui_state.add_text(
+                content, element_id, parent_id=parent_id, flex_grow=flex_grow, width=width
+            )
             logger.info(f"Displayed text: {element_id}")
             return f"Text '{element_id}' displayed successfully"
         except Exception as e:
@@ -86,11 +91,17 @@ class ToolExecutor:
             if not label or not element_id or not callback_id:
                 return "Error: create_button requires 'label', 'id', and 'callback_id'"
 
+            parent_id = tool_input.get("parent_id")
             flex_grow = tool_input.get("flex_grow")
             width = tool_input.get("width")
 
             self.ui_state.add_button(
-                label, element_id, callback_id, flex_grow=flex_grow, width=width
+                label,
+                element_id,
+                callback_id,
+                parent_id=parent_id,
+                flex_grow=flex_grow,
+                width=width,
             )
             logger.info(f"Created button: {element_id}")
             return f"Button '{element_id}' created successfully"
@@ -115,14 +126,55 @@ class ToolExecutor:
             if not element_id or not flex_direction:
                 return "Error: create_container requires 'id' and 'flex_direction'"
 
+            parent_id = tool_input.get("parent_id")
             justify_content = tool_input.get("justify_content")
             gap = tool_input.get("gap")
 
-            self.ui_state.add_container(element_id, flex_direction, justify_content, gap)
+            self.ui_state.add_container(
+                element_id, flex_direction, parent_id, justify_content, gap
+            )
             logger.info(f"Created container: {element_id}")
             return f"Container '{element_id}' created successfully"
         except Exception as e:
             error_msg = f"Error creating container: {e}"
+            logger.error(error_msg)
+            return error_msg
+
+    def _execute_update_element(self, tool_input: dict[str, Any]) -> str:
+        """Execute update_element tool.
+
+        Args:
+            tool_input: Must contain 'id' key, optional: content, callback_id, flex_grow, width
+
+        Returns:
+            Success or error message
+        """
+        try:
+            element_id = tool_input.get("id")
+
+            if not element_id:
+                return "Error: update_element requires 'id'"
+
+            content = tool_input.get("content")
+            callback_id = tool_input.get("callback_id")
+            flex_grow = tool_input.get("flex_grow")
+            width = tool_input.get("width")
+
+            success = self.ui_state.update_element(
+                element_id,
+                content=content,
+                callback_id=callback_id,
+                flex_grow=flex_grow,
+                width=width,
+            )
+
+            if success:
+                logger.info(f"Updated element: {element_id}")
+                return f"Element '{element_id}' updated successfully"
+            else:
+                return f"Error: Element '{element_id}' not found"
+        except Exception as e:
+            error_msg = f"Error updating element: {e}"
             logger.error(error_msg)
             return error_msg
 
