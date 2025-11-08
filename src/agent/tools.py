@@ -27,6 +27,14 @@ DISPLAY_TEXT_TOOL: ToolDefinition = {
                 "type": "string",
                 "description": "Unique identifier for this text element (e.g., 'text_1', 'result')",
             },
+            "flex_grow": {
+                "type": "number",
+                "description": "CSS flex-grow property for layout (0-1, default 0)",
+            },
+            "width": {
+                "type": "string",
+                "description": "CSS width property (e.g., '100%', '200px', default 'auto')",
+            },
         },
         "required": ["content", "id"],
     },
@@ -35,7 +43,7 @@ DISPLAY_TEXT_TOOL: ToolDefinition = {
 # Create button tool
 CREATE_BUTTON_TOOL: ToolDefinition = {
     "name": "create_button",
-    "description": "Create a clickable button on the UI. When clicked, the button label will be sent back as user input.",
+    "description": "Create a clickable button on the UI. When clicked, sends back the callback_id.",
     "input_schema": {
         "type": "object",
         "properties": {
@@ -47,10 +55,52 @@ CREATE_BUTTON_TOOL: ToolDefinition = {
                 "type": "string",
                 "description": "Unique identifier for this button (e.g., 'btn_1', 'submit_btn')",
             },
+            "callback_id": {
+                "type": "string",
+                "description": "Identifier sent back to the agent when button is clicked (e.g., 'on_submit', 'increment')",
+            },
+            "flex_grow": {
+                "type": "number",
+                "description": "CSS flex-grow property for layout (0-1, default 0)",
+            },
+            "width": {
+                "type": "string",
+                "description": "CSS width property (e.g., '100%', '200px', default 'auto')",
+            },
         },
-        "required": ["label", "id"],
+        "required": ["label", "id", "callback_id"],
+    },
+}
+
+# Create container tool
+CREATE_CONTAINER_TOOL: ToolDefinition = {
+    "name": "create_container",
+    "description": "Create a container to group UI elements with flexbox layout.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "id": {
+                "type": "string",
+                "description": "Unique identifier for this container (e.g., 'container_1')",
+            },
+            "flex_direction": {
+                "type": "string",
+                "enum": ["row", "column"],
+                "description": "Direction of flex layout (row for horizontal, column for vertical)",
+            },
+            "justify_content": {
+                "type": "string",
+                "enum": ["flex-start", "center", "flex-end", "space-between", "space-around"],
+                "description": "Alignment along main axis",
+            },
+            "gap": {
+                "type": "string",
+                "description": "Space between items (e.g., '10px', '1rem')",
+            },
+        },
+        "required": ["id", "flex_direction"],
     },
 }
 
 # All available tools
-TOOLS = [DISPLAY_TEXT_TOOL, CREATE_BUTTON_TOOL]
+TOOLS = [DISPLAY_TEXT_TOOL, CREATE_BUTTON_TOOL, CREATE_CONTAINER_TOOL]

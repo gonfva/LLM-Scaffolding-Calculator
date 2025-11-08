@@ -141,6 +141,8 @@ function renderUIState(uiState) {
       renderTextElement(elem);
     } else if (elem.type === "button") {
       renderButtonElement(elem);
+    } else if (elem.type === "container") {
+      renderContainerElement(elem);
     }
   });
 }
@@ -153,6 +155,17 @@ function renderTextElement(elem) {
   textDiv.className = "ui-element ui-text";
   textDiv.id = `elem-${elem.id}`;
   textDiv.textContent = elem.properties.content;
+
+  // Apply layout properties
+  if (elem.layout) {
+    if (elem.layout.flex_grow !== undefined) {
+      textDiv.style.flexGrow = elem.layout.flex_grow;
+    }
+    if (elem.layout.width) {
+      textDiv.style.width = elem.layout.width;
+    }
+  }
+
   elements.uiContainer.appendChild(textDiv);
   uiElements[elem.id] = textDiv;
 }
@@ -165,12 +178,68 @@ function renderButtonElement(elem) {
   button.className = "ui-element ui-button";
   button.id = `elem-${elem.id}`;
   button.textContent = elem.properties.label;
+  const callbackId = elem.properties.callback_id;
+
+  // Apply layout properties
+  if (elem.layout) {
+    if (elem.layout.flex_grow !== undefined) {
+      button.style.flexGrow = elem.layout.flex_grow;
+    }
+    if (elem.layout.width) {
+      button.style.width = elem.layout.width;
+    }
+  }
+
   button.addEventListener("click", () => {
-    console.log("Button clicked:", elem.id);
-    sendMessage(`Button clicked: ${elem.properties.label}`);
+    console.log("Button clicked:", elem.id, "callback_id:", callbackId);
+    sendButtonCallback(callbackId);
   });
   elements.uiContainer.appendChild(button);
   uiElements[elem.id] = button;
+}
+
+/**
+ * Render a container element with flex layout
+ */
+function renderContainerElement(elem) {
+  const container = document.createElement("div");
+  container.className = "ui-element ui-container";
+  container.id = `elem-${elem.id}`;
+
+  // Apply flex layout properties
+  if (elem.layout) {
+    container.style.display = "flex";
+    if (elem.layout.flex_direction) {
+      container.style.flexDirection = elem.layout.flex_direction;
+    }
+    if (elem.layout.justify_content) {
+      container.style.justifyContent = elem.layout.justify_content;
+    }
+    if (elem.layout.gap) {
+      container.style.gap = elem.layout.gap;
+    }
+  }
+
+  elements.uiContainer.appendChild(container);
+  uiElements[elem.id] = container;
+}
+
+/**
+ * Send button callback to server
+ */
+function sendButtonCallback(callbackId) {
+  if (!callbackId || !ws || ws.readyState !== WebSocket.OPEN) {
+    return;
+  }
+
+  console.log("Sending button callback:", callbackId);
+  addMessage("Client", `Button: ${callbackId}`, "sent");
+  ws.send(
+    JSON.stringify({
+      type: "button_click",
+      callback_id: callbackId,
+    })
+  );
 }
 
 /**

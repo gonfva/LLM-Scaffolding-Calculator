@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import Any
 
@@ -57,19 +58,49 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
         await websocket.send_json(initial_message)
 
         while True:
-            data = await websocket.receive_text()
-            logger.info(f"Received: {data}")
-            if agent:
-                response = agent.process_message(data)
-                ui_state = agent.get_ui_state()
+            # Try to receive as JSON first (for button clicks), fall back to text
+            try:
+                data_raw = await websocket.receive_text()
+                # Try to parse as JSON
+                if data_raw.startswith("{"):
+                    data_json = json.loads(data_raw)
+                    if data_json.get("type") == "button_click":
+                        # Handle button click callback
+                        callback_id = data_json.get("callback_id")
+                        logger.info(f"Button callback received: {callback_id}")
+                        if agent:
+                            response = agent.process_message(f"button_click:{callback_id}")
+                            ui_state = agent.get_ui_state()
 
-                # Send response with updated UI state
-                message: dict[str, Any] = {
-                    "type": "response",
-                    "message": response,
-                    "ui_state": ui_state,
+                            message: dict[str, Any] = {
+                                "type": "response",
+                                "message": response,
+                                "ui_state": ui_state,
+                            }
+                            await websocket.send_json(message)
+                    else:
+                        # Unknown JSON message type
+                        logger.warning(f"Unknown message type: {data_json.get('type')}")
+                else:
+                    # Regular text message
+                    logger.info(f"Received text: {data_raw}")
+                    if agent:
+                        response = agent.process_message(data_raw)
+                        ui_state = agent.get_ui_state()
+
+                        response_msg: dict[str, Any] = {
+                            "type": "response",
+                            "message": response,
+                            "ui_state": ui_state,
+                        }
+                        await websocket.send_json(response_msg)
+            except Exception as e:
+                logger.error(f"Error processing message: {e}")
+                error_msg: dict[str, Any] = {
+                    "type": "error",
+                    "message": f"Error processing message: {e}",
                 }
-                await websocket.send_json(message)
+                await websocket.send_json(error_msg)
     except ValueError as e:
         logger.error(f"Configuration error: {e}")
         error_msg_value_error: dict[str, Any] = {"type": "error", "message": str(e)}

@@ -2,7 +2,6 @@
 
 from unittest.mock import MagicMock, patch
 
-import pytest
 from anthropic.types import TextBlock, ToolUseBlock
 
 from src.agent.claude_agent import ClaudeAgent
