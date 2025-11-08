@@ -67,6 +67,7 @@ class ClaudeAgent:
 
             # Process response content blocks
             assistant_content: list[dict[str, Any]] = []
+            tool_calls: list[dict[str, Any]] = []
             tool_calls_made = False
 
             for block in response.content:
@@ -84,28 +85,26 @@ class ClaudeAgent:
                         }
                     )
 
-                    # Execute the tool
+                    # Execute the tool and collect results
                     tool_result = self.tool_executor.execute_tool(
                         block.name, block.input  # type: ignore[arg-type]
                     )
                     logger.info(f"Tool result: {tool_result}")
 
-                    # Add tool result to conversation
-                    self.conversation_history.append(
+                    tool_calls.append(
                         {
-                            "role": "user",
-                            "content": [
-                                {
-                                    "type": "tool_result",
-                                    "tool_use_id": block.id,
-                                    "content": tool_result,
-                                }
-                            ],
+                            "type": "tool_result",
+                            "tool_use_id": block.id,
+                            "content": tool_result,
                         }
                     )
 
             # Add assistant response to history
             self.conversation_history.append({"role": "assistant", "content": assistant_content})
+
+            # If tool calls were made, add all tool results in a single user message
+            if tool_calls:
+                self.conversation_history.append({"role": "user", "content": tool_calls})
 
             # If no tool calls were made, we're done
             if not tool_calls_made:
