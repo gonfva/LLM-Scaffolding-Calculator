@@ -4,7 +4,8 @@ from fastapi import FastAPI, WebSocket
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from src.agent.agent import Agent
+from src.agent.claude_agent import ClaudeAgent
+from src.config import get_anthropic_api_key
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +15,7 @@ app = FastAPI(title="Agentic Calculator")
 app.mount("/static", StaticFiles(directory="src/static"), name="static")
 
 # Global agent instance (single client assumption for now)
-agent: Agent | None = None
+agent: ClaudeAgent | None = None
 
 
 @app.get("/health")
@@ -37,20 +38,28 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
     await websocket.accept()
     logger.info("Client connected")
 
-    # Initialize agent on connection
-    agent = Agent(system_prompt="You are a helpful calculator assistant.")
-    welcome_msg = agent.send_welcome_message()
-    await websocket.send_text(welcome_msg)
-
     try:
+        # Initialize agent on connection
+        api_key = get_anthropic_api_key()
+        agent = ClaudeAgent(
+            system_prompt="You are a helpful calculator assistant.",
+            api_key=api_key,
+        )
+        welcome_msg = agent.send_welcome_message()
+        await websocket.send_text(welcome_msg)
+
         while True:
             data = await websocket.receive_text()
             logger.info(f"Received: {data}")
             if agent:
                 response = agent.process_message(data)
                 await websocket.send_text(response)
+    except ValueError as e:
+        logger.error(f"Configuration error: {e}")
+        await websocket.send_text(f"Error: {e}")
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
+        await websocket.send_text(f"Error: {type(e).__name__}")
     finally:
         logger.info("Client disconnected")
         agent = None
