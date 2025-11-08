@@ -102,5 +102,27 @@ CREATE_CONTAINER_TOOL: ToolDefinition = {
     },
 }
 
+# Apply theme tool
+APPLY_THEME_TOOL: ToolDefinition = {
+    "name": "apply_theme",
+    "description": "Apply a theme to the UI. Available themes: minimal, pirate, halloween, cyberpunk, retro, forest. Use this to style the entire interface with a consistent look and feel.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "theme_name": {
+                "type": "string",
+                "enum": ["minimal", "pirate", "halloween", "cyberpunk", "retro", "forest"],
+                "description": "Name of the theme to apply (e.g., 'pirate', 'halloween', 'cyberpunk')",
+            },
+            "custom_overrides": {
+                "type": "object",
+                "description": 'Optional custom CSS variable overrides (e.g., {"primary_color": "#ff0000"})',
+                "additionalProperties": {"type": "string"},
+            },
+        },
+        "required": ["theme_name"],
+    },
+}
+
 # All available tools
-TOOLS = [DISPLAY_TEXT_TOOL, CREATE_BUTTON_TOOL, CREATE_CONTAINER_TOOL]
+TOOLS = [DISPLAY_TEXT_TOOL, CREATE_BUTTON_TOOL, CREATE_CONTAINER_TOOL, APPLY_THEME_TOOL]

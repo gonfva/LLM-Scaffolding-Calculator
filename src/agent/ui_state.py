@@ -3,6 +3,8 @@
 from dataclasses import dataclass, field
 from typing import Any
 
+from src.agent.themes import ThemeVariables, get_theme
+
 
 @dataclass
 class UIElement:
@@ -31,6 +33,8 @@ class UIState:
     def __init__(self) -> None:
         """Initialize empty UI state."""
         self.elements: list[UIElement] = []
+        self.current_theme: str = "minimal"
+        self.theme_variables: ThemeVariables | None = None
 
     def add_text(
         self,
@@ -120,15 +124,46 @@ class UIState:
         )
         self.elements.append(element)
 
+    def apply_theme(
+        self,
+        theme_name: str,
+        custom_overrides: dict[str, str] | None = None,
+    ) -> bool:
+        """Apply a theme to the UI.
+
+        Args:
+            theme_name: Name of the theme to apply
+            custom_overrides: Optional custom CSS variable overrides
+
+        Returns:
+            True if theme was applied successfully, False otherwise
+        """
+        theme = get_theme(theme_name)
+        if not theme:
+            return False
+
+        self.current_theme = theme_name
+        variables = dict(theme["variables"])
+        if custom_overrides:
+            variables.update(custom_overrides)
+        self.theme_variables = variables  # type: ignore[assignment]
+        return True
+
     def get_state(self) -> dict[str, Any]:
         """Get current UI state as a dictionary.
 
         Returns:
-            Dictionary representation of current UI elements
+            Dictionary representation of current UI elements and theme
         """
-        return {
+        state: dict[str, Any] = {
             "elements": [elem.to_dict() for elem in self.elements],
         }
+        if self.theme_variables:
+            state["theme"] = {
+                "name": self.current_theme,
+                "variables": self.theme_variables,
+            }
+        return state
 
     def reset(self) -> None:
         """Clear all UI elements."""

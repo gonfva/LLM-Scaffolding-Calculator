@@ -37,6 +37,8 @@ class ToolExecutor:
             return self._execute_create_button(tool_input)
         elif tool_name == "create_container":
             return self._execute_create_container(tool_input)
+        elif tool_name == "apply_theme":
+            return self._execute_apply_theme(tool_input)
         else:
             return f"Error: Unknown tool '{tool_name}'"
 
@@ -121,5 +123,33 @@ class ToolExecutor:
             return f"Container '{element_id}' created successfully"
         except Exception as e:
             error_msg = f"Error creating container: {e}"
+            logger.error(error_msg)
+            return error_msg
+
+    def _execute_apply_theme(self, tool_input: dict[str, Any]) -> str:
+        """Execute apply_theme tool.
+
+        Args:
+            tool_input: Must contain 'theme_name' key
+
+        Returns:
+            Success or error message
+        """
+        try:
+            theme_name = tool_input.get("theme_name")
+
+            if not theme_name:
+                return "Error: apply_theme requires 'theme_name'"
+
+            custom_overrides = tool_input.get("custom_overrides")
+
+            success = self.ui_state.apply_theme(theme_name, custom_overrides)
+            if success:
+                logger.info(f"Applied theme: {theme_name}")
+                return f"Theme '{theme_name}' applied successfully"
+            else:
+                return f"Error: Theme '{theme_name}' not found"
+        except Exception as e:
+            error_msg = f"Error applying theme: {e}"
             logger.error(error_msg)
             return error_msg

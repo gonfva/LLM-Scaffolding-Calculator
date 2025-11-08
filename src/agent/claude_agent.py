@@ -86,9 +86,7 @@ class ClaudeAgent:
                     )
 
                     # Execute the tool and collect results
-                    tool_result = self.tool_executor.execute_tool(
-                        block.name, block.input
-                    )
+                    tool_result = self.tool_executor.execute_tool(block.name, block.input)
                     logger.info(f"Tool result: {tool_result}")
 
                     tool_calls.append(

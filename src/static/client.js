@@ -122,10 +122,40 @@ function handleServerMessage(msg) {
 }
 
 /**
+ * Apply theme to the UI
+ */
+function applyTheme(themeData) {
+  if (!themeData || !themeData.variables) {
+    console.log("No theme data to apply");
+    return;
+  }
+
+  console.log("Applying theme:", themeData.name);
+
+  // Apply CSS variables to the document root
+  const root = document.documentElement;
+  for (const [key, value] of Object.entries(themeData.variables)) {
+    // Convert camelCase to kebab-case for CSS variables
+    const cssVarName = `--${key.replace(/([A-Z])/g, "-$1").toLowerCase()}`;
+    root.style.setProperty(cssVarName, value);
+  }
+}
+
+/**
  * Render UI elements from state
  */
 function renderUIState(uiState) {
-  if (!uiState || !uiState.elements) {
+  if (!uiState) {
+    return;
+  }
+
+  // Apply theme if provided
+  if (uiState.theme) {
+    applyTheme(uiState.theme);
+  }
+
+  // Render elements if provided
+  if (!uiState.elements) {
     return;
   }
 
