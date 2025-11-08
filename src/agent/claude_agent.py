@@ -42,7 +42,7 @@ class ClaudeAgent:
 
         # Get response from Claude
         response = self.client.messages.create(
-            model="claude-4-5-sonnet-20250514",
+            model="claude-haiku-4-5-20251001",
             max_tokens=1024,
             system=self.system_prompt,
             messages=self.conversation_history,  # type: ignore[arg-type]
