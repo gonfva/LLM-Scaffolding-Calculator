@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 
 from fastapi import FastAPI, WebSocket
 from fastapi.responses import FileResponse
@@ -46,20 +47,40 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
             api_key=api_key,
         )
         welcome_msg = agent.send_welcome_message()
-        await websocket.send_text(welcome_msg)
+
+        # Send initial message with empty UI state
+        initial_message: dict[str, Any] = {
+            "type": "init",
+            "message": welcome_msg,
+            "ui_state": agent.get_ui_state(),
+        }
+        await websocket.send_json(initial_message)
 
         while True:
             data = await websocket.receive_text()
             logger.info(f"Received: {data}")
             if agent:
                 response = agent.process_message(data)
-                await websocket.send_text(response)
+                ui_state = agent.get_ui_state()
+
+                # Send response with updated UI state
+                message: dict[str, Any] = {
+                    "type": "response",
+                    "message": response,
+                    "ui_state": ui_state,
+                }
+                await websocket.send_json(message)
     except ValueError as e:
         logger.error(f"Configuration error: {e}")
-        await websocket.send_text(f"Error: {e}")
+        error_msg_value_error: dict[str, Any] = {"type": "error", "message": str(e)}
+        await websocket.send_json(error_msg_value_error)
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
-        await websocket.send_text(f"Error: {type(e).__name__}")
+        error_msg_generic: dict[str, Any] = {
+            "type": "error",
+            "message": f"{type(e).__name__}: {e}",
+        }
+        await websocket.send_json(error_msg_generic)
     finally:
         logger.info("Client disconnected")
         agent = None

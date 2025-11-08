@@ -13,7 +13,11 @@ const elements = {
   messages: document.getElementById("messages"),
   input: document.getElementById("input"),
   sendBtn: document.getElementById("send-btn"),
+  uiContainer: document.getElementById("ui-container"),
 };
+
+// Container for dynamically rendered UI elements
+let uiElements = {};
 
 /**
  * Initialize WebSocket connection
@@ -33,7 +37,13 @@ function connectWebSocket() {
 
   ws.onmessage = (event) => {
     console.log("Message received:", event.data);
-    addMessage("Server", event.data, "received");
+    try {
+      const msg = JSON.parse(event.data);
+      handleServerMessage(msg);
+    } catch (e) {
+      console.error("Failed to parse message:", e);
+      addMessage("Error", "Invalid message format", "error");
+    }
   };
 
   ws.onerror = (event) => {
@@ -91,6 +101,76 @@ function sendMessage() {
   ws.send(text);
   elements.input.value = "";
   elements.input.focus();
+}
+
+/**
+ * Handle server messages (init, response, error)
+ */
+function handleServerMessage(msg) {
+  if (msg.type === "init") {
+    // Initial connection message
+    addMessage("Assistant", msg.message, "received");
+    renderUIState(msg.ui_state);
+  } else if (msg.type === "response") {
+    // Response to user message
+    addMessage("Assistant", msg.message, "received");
+    renderUIState(msg.ui_state);
+  } else if (msg.type === "error") {
+    // Error message
+    addMessage("Error", msg.message, "error");
+  }
+}
+
+/**
+ * Render UI elements from state
+ */
+function renderUIState(uiState) {
+  if (!uiState || !uiState.elements) {
+    return;
+  }
+
+  // Clear previous UI elements
+  if (elements.uiContainer) {
+    elements.uiContainer.innerHTML = "";
+    uiElements = {};
+  }
+
+  // Render each element
+  uiState.elements.forEach((elem) => {
+    if (elem.type === "text") {
+      renderTextElement(elem);
+    } else if (elem.type === "button") {
+      renderButtonElement(elem);
+    }
+  });
+}
+
+/**
+ * Render a text element
+ */
+function renderTextElement(elem) {
+  const textDiv = document.createElement("div");
+  textDiv.className = "ui-element ui-text";
+  textDiv.id = `elem-${elem.id}`;
+  textDiv.textContent = elem.properties.content;
+  elements.uiContainer.appendChild(textDiv);
+  uiElements[elem.id] = textDiv;
+}
+
+/**
+ * Render a button element
+ */
+function renderButtonElement(elem) {
+  const button = document.createElement("button");
+  button.className = "ui-element ui-button";
+  button.id = `elem-${elem.id}`;
+  button.textContent = elem.properties.label;
+  button.addEventListener("click", () => {
+    console.log("Button clicked:", elem.id);
+    sendMessage(`Button clicked: ${elem.properties.label}`);
+  });
+  elements.uiContainer.appendChild(button);
+  uiElements[elem.id] = button;
 }
 
 /**

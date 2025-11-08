@@ -23,9 +23,11 @@ def test_websocket_receives_welcome_message(client: TestClient) -> None:
         patch("src.agent.claude_agent.Anthropic"),
     ):
         with client.websocket_connect("/ws") as websocket:
-            welcome = websocket.receive_text()
-            assert "Welcome" in welcome
-            assert "Claude" in welcome
+            msg = websocket.receive_json()
+            assert msg["type"] == "init"
+            assert "Welcome" in msg["message"]
+            assert "Claude" in msg["message"]
+            assert "ui_state" in msg
 
 
 def test_websocket_message_to_claude(client: TestClient) -> None:
@@ -47,13 +49,15 @@ def test_websocket_message_to_claude(client: TestClient) -> None:
 
         with client.websocket_connect("/ws") as websocket:
             # Receive welcome message
-            websocket.receive_text()
+            websocket.receive_json()
 
             # Send message to Claude
             websocket.send_text("What is 2+2?")
-            response = websocket.receive_text()
+            msg = websocket.receive_json()
 
-            assert response == "Claude's answer"
+            assert msg["type"] == "response"
+            assert msg["message"] == "Claude's answer"
+            assert "ui_state" in msg
 
 
 def test_websocket_multiple_messages(client: TestClient) -> None:
@@ -82,13 +86,15 @@ def test_websocket_multiple_messages(client: TestClient) -> None:
 
         with client.websocket_connect("/ws") as websocket:
             # Receive welcome message
-            websocket.receive_text()
+            websocket.receive_json()
 
             # Send multiple messages
             websocket.send_text("First question")
-            response1 = websocket.receive_text()
-            assert response1 == "First answer"
+            msg1 = websocket.receive_json()
+            assert msg1["type"] == "response"
+            assert msg1["message"] == "First answer"
 
             websocket.send_text("Second question")
-            response2 = websocket.receive_text()
-            assert response2 == "Second answer"
+            msg2 = websocket.receive_json()
+            assert msg2["type"] == "response"
+            assert msg2["message"] == "Second answer"
