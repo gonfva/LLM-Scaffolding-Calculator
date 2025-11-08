@@ -11,12 +11,12 @@ def test_health_check(client: TestClient) -> None:
 
 
 def test_root_endpoint(client: TestClient) -> None:
-    """Test root endpoint."""
+    """Test root endpoint serves HTML client."""
     response = client.get("/")
     assert response.status_code == 200
-    data = response.json()
-    assert "message" in data
-    assert "Agentic Calculator" in data["message"]
+    assert response.headers["content-type"] == "text/html; charset=utf-8"
+    assert "Agentic Calculator" in response.text
+    assert "<html" in response.text.lower()
 
 
 def test_nonexistent_endpoint(client: TestClient) -> None:

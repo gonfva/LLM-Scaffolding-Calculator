@@ -1,6 +1,7 @@
 import logging
 
 from fastapi import FastAPI, WebSocket
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from src.agent.agent import Agent
@@ -23,9 +24,9 @@ def health_check() -> dict[str, str]:
 
 
 @app.get("/")
-def read_root() -> dict[str, str]:
-    """Root endpoint."""
-    return {"message": "Agentic Calculator Backend"}
+def read_root() -> FileResponse:
+    """Root endpoint - serves the main HTML client."""
+    return FileResponse("src/static/index.html", media_type="text/html")
 
 
 @app.websocket("/ws")
