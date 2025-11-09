@@ -30,6 +30,8 @@ function connectWebSocket() {
   ws.onopen = () => {
     updateStatus(true);
     addMessage("System", "Connected to backend. LLM initializing...");
+    // Show processing indicator while LLM is initializing
+    updateProcessingStatus(true);
   };
 
   ws.onmessage = (event) => {
