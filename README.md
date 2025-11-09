@@ -4,6 +4,8 @@ A proof-of-concept calculator built with Claude AI as the architect, dynamically
 
 "LLM-Scaffolded Interaction" Emphasizes that the LLM builds the structure/scaffold, then the client executes it.
 
+> **Note:** This is a PoC without optimizations. Every button click requires an LLM API call with full conversation history, resulting in significant latency (5-10+ seconds per interaction). This is intentional for exploration purposes.
+
 ## Development Setup
 
 ### Prerequisites
