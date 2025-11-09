@@ -17,6 +17,10 @@ const elements = {
 // Container for dynamically rendered UI elements
 let uiElements = {};
 
+// Processing state and message queue
+let isProcessing = false;
+let messageQueue = [];
+
 /**
  * Initialize WebSocket connection
  */
@@ -63,6 +67,22 @@ function updateStatus(connected) {
 }
 
 /**
+ * Update processing status display
+ */
+function updateProcessingStatus(processing) {
+  isProcessing = processing;
+  if (processing) {
+    elements.status.classList.remove("connected", "disconnected");
+    elements.status.classList.add("processing");
+    elements.statusText.textContent = "Processing...";
+  } else if (ws && ws.readyState === WebSocket.OPEN) {
+    elements.status.classList.remove("processing");
+    elements.status.classList.add("connected");
+    elements.statusText.textContent = "Connected";
+  }
+}
+
+/**
  * Add message to message log
  */
 function addMessage(source, text, type = "info") {
@@ -87,13 +107,21 @@ function handleServerMessage(msg) {
     addMessage("You", "Create a calculator", "sent");
     addMessage("Assistant", msg.message, "received");
     renderUIState(msg.ui_state);
+    // Clear processing status after init completes
+    updateProcessingStatus(false);
   } else if (msg.type === "response") {
     // Response to button clicks
     addMessage("Assistant", msg.message, "received");
     renderUIState(msg.ui_state);
+    // Clear processing status and process next queued message
+    updateProcessingStatus(false);
+    processNextQueuedMessage();
   } else if (msg.type === "error") {
     // Error message
     addMessage("Error", msg.message, "error");
+    // Clear processing status on error and process next queued message
+    updateProcessingStatus(false);
+    processNextQueuedMessage();
   }
 }
 
@@ -237,13 +265,24 @@ function createContainerElement(elem) {
 }
 
 /**
- * Send button callback to server
+ * Process next message in queue if any
  */
-function sendButtonCallback(callbackId) {
+function processNextQueuedMessage() {
+  if (messageQueue.length > 0) {
+    const callbackId = messageQueue.shift();
+    sendButtonCallbackInternal(callbackId);
+  }
+}
+
+/**
+ * Send button callback to server (internal - handles queueing)
+ */
+function sendButtonCallbackInternal(callbackId) {
   if (!callbackId || !ws || ws.readyState !== WebSocket.OPEN) {
     return;
   }
 
+  updateProcessingStatus(true);
   addMessage("Client", `Button: ${callbackId}`, "sent");
   ws.send(
     JSON.stringify({
@@ -251,6 +290,24 @@ function sendButtonCallback(callbackId) {
       callback_id: callbackId,
     })
   );
+}
+
+/**
+ * Send button callback to server (public - handles queueing)
+ */
+function sendButtonCallback(callbackId) {
+  if (!callbackId || !ws || ws.readyState !== WebSocket.OPEN) {
+    return;
+  }
+
+  // If already processing, queue the message
+  if (isProcessing) {
+    messageQueue.push(callbackId);
+    return;
+  }
+
+  // Otherwise send immediately
+  sendButtonCallbackInternal(callbackId);
 }
 
 /**

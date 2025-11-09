@@ -126,6 +126,12 @@
             border: 1px solid #f5c6cb;
         }
 
+        .status.processing {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
         .status-indicator {
             width: 8px;
             height: 8px;
@@ -140,6 +146,11 @@
 
         .status.disconnected .status-indicator {
             background: #dc3545;
+        }
+
+        .status.processing .status-indicator {
+            background: #ffc107;
+            animation: pulse 2s infinite;
         }
 
         @keyframes pulse {
