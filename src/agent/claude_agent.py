@@ -97,8 +97,9 @@ class ClaudeAgent:
                         }
                     )
 
-            # Add assistant response to history
-            self.conversation_history.append({"role": "assistant", "content": assistant_content})
+            # Add assistant response to history only if there's content
+            if assistant_content:
+                self.conversation_history.append({"role": "assistant", "content": assistant_content})
 
             # If tool calls were made, add all tool results in a single user message
             if tool_calls:
