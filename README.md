@@ -66,30 +66,50 @@ black src/ tests/ && ruff check src/ tests/ && mypy src/
 ### Project Structure
 
 ```
-calc2/
+.
 ├── src/
-│   ├── agent/          # Agent logic
-│   │   └── agent.py    # Core agent class
+│   ├── agent/                    # Agent and UI state management
+│   │   ├── claude_agent.py       # Claude agent with tool use
+│   │   ├── tool_executor.py      # Tool execution engine
+│   │   ├── ui_state.py           # UI state management
+│   │   └── tools.py              # Tool definitions
 │   ├── app/
-│   │   └── main.py     # FastAPI app & WebSocket handler
-│   └── static/         # Client-side code
-│       ├── index.html  # Web UI
-│       └── client.js   # WebSocket client
-├── tests/              # Test suite
-│   ├── test_agent.py
-│   ├── test_endpoints.py
-│   ├── test_websocket.py
-│   └── conftest.py
-├── requirements.txt    # Python dependencies
-├── pyproject.toml      # Linting/formatting config
-└── .env.example        # Environment variables template
+│   │   └── main.py               # FastAPI app & WebSocket endpoint
+│   ├── config.py                 # Configuration (API key loading)
+│   └── static/                   # Frontend assets
+│       ├── index.html            # Main UI with CSS
+│       └── client.js             # WebSocket client & UI renderer
+├── tests/                        # Test suite (72 tests)
+│   ├── test_*.py                 # Various test modules
+│   └── conftest.py               # Pytest configuration
+├── LICENSE                       # MIT License
+├── README.md                     # This file
+├── CLAUDE.md                     # Design vision document
+├── requirements.txt              # Python dependencies
+├── pyproject.toml                # Linting/formatting config
+└── .env                          # Environment variables (git-ignored)
 ```
 
 ## Architecture Overview
 
-The application follows an agentic UI pattern:
-- **Backend (Python/FastAPI):** Runs an agent that processes user inputs
-- **Client (Vanilla JS):** Connects via WebSocket, sends messages, displays responses
-- **Agent:** Currently echoes messages; will be extended with Claude API integration
+The application implements an **agentic UI pattern** where Claude AI dynamically builds and maintains the user interface:
 
-See `CLAUDE.md` for more details on the design vision.
+```
+┌─────────────────────┐
+│  Claude (LLM)       │ ← Architect: Designs UI and interactions
+├─────────────────────┤
+│  Backend (FastAPI)  │ ← Mediator: Routes messages, executes tools
+├─────────────────────┤
+│  Client (JS)        │ ← Executor: Renders UI, handles interactions
+└─────────────────────┘
+```
+
+**Key Features:**
+- **Decoupled Concerns:** WebSocket connection → background LLM init → message processing
+- **Tool-Based UI:** Claude uses tools (`display_text`, `create_button`, `create_container`, `update_element`) to build UI dynamically
+- **Grid & Flexbox Layouts:** CSS Grid for structured layouts (calculators), Flexbox for responsive design
+- **Message Queueing:** Button clicks during LLM processing are queued and processed in order
+- **Processing Feedback:** Visual indicator (yellow "Processing..." status) shows when backend is busy
+- **Real-Time Sync:** WebSocket keeps client and server state synchronized
+
+See `CLAUDE.md` for the design philosophy and vision.
