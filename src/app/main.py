@@ -17,7 +17,11 @@ app = FastAPI(title="Agentic Calculator")
 # Mount static files
 app.mount("/static", StaticFiles(directory="src/static"), name="static")
 
-# Global agent instance (single client assumption for now)
+# Global agent instance
+# NOTE: This implementation assumes a single client connection at a time.
+# For production use with multiple concurrent clients, these globals should be moved
+# to a per-connection context (e.g., storing in the WebSocket object or a session manager)
+# to prevent state interference between clients.
 agent: ClaudeAgent | None = None
 initialization_complete: asyncio.Event | None = None
 pending_messages: list[str] = []

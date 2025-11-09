@@ -1,6 +1,6 @@
 # Calc 2
 
-Second attempt building a calculator using agentic AI
+A proof-of-concept calculator built with Claude AI as the architect, dynamically generating the UI through tool calls. Explores a new paradigm where LLMs design and maintain interfaces rather than just responding to text queries.
 
 ## Development Setup
 
