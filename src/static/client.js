@@ -21,34 +21,27 @@ let uiElements = {};
  * Initialize WebSocket connection
  */
 function connectWebSocket() {
-  console.log("Connecting to WebSocket...", wsUrl);
-
   ws = new WebSocket(wsUrl);
 
   ws.onopen = () => {
-    console.log("WebSocket connected");
     updateStatus(true);
     addMessage("System", "Connected to backend. LLM initializing...");
   };
 
   ws.onmessage = (event) => {
-    console.log("Message received:", event.data);
     try {
       const msg = JSON.parse(event.data);
       handleServerMessage(msg);
     } catch (e) {
-      console.error("Failed to parse message:", e);
       addMessage("Error", "Invalid message format", "error");
     }
   };
 
   ws.onerror = (event) => {
-    console.error("WebSocket error:", event);
     addMessage("System", "WebSocket error occurred", "error");
   };
 
   ws.onclose = () => {
-    console.log("WebSocket disconnected");
     updateStatus(false);
     addMessage("System", "Disconnected from backend");
   };
@@ -192,7 +185,6 @@ function createButtonElement(elem) {
   const callbackId = elem.properties.callback_id;
 
   button.addEventListener("click", () => {
-    console.log("Button clicked:", elem.id, "callback_id:", callbackId);
     sendButtonCallback(callbackId);
   });
 
@@ -232,7 +224,6 @@ function sendButtonCallback(callbackId) {
     return;
   }
 
-  console.log("Sending button callback:", callbackId);
   addMessage("Client", `Button: ${callbackId}`, "sent");
   ws.send(
     JSON.stringify({
@@ -246,6 +237,5 @@ function sendButtonCallback(callbackId) {
  * Initialize on page load
  */
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("Page loaded, connecting to WebSocket");
   connectWebSocket();
 });
