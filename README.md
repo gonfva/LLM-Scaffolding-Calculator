@@ -1,6 +1,8 @@
-# Calc 2
+# LLM-Scaffolding Calculator
 
 A proof-of-concept calculator built with Claude AI as the architect, dynamically generating the UI through tool calls. Explores a new paradigm where LLMs design and maintain interfaces rather than just responding to text queries.
+
+"LLM-Scaffolded Interaction" Emphasizes that the LLM builds the structure/scaffold, then the client executes it.
 
 ## Development Setup
 
