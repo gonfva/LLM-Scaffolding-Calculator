@@ -97,9 +97,7 @@ class TestCalculatorNested:
             mock_anthropic.return_value = mock_client
             mock_client.messages.create.side_effect = [mock_response, mock_response_final]
 
-            agent = ClaudeAgent(
-                system_prompt="You are a calculator assistant", api_key="test-key"
-            )
+            agent = ClaudeAgent(system_prompt="You are a calculator assistant", api_key="test-key")
             agent.process_message("Create a calculator with buttons 1, 2 and +")
 
             ui_state = agent.get_ui_state()
@@ -187,9 +185,7 @@ class TestCalculatorNested:
                 mock_response_update_final,
             ]
 
-            agent = ClaudeAgent(
-                system_prompt="You are a calculator", api_key="test-key"
-            )
+            agent = ClaudeAgent(system_prompt="You are a calculator", api_key="test-key")
 
             # Create calculator
             agent.process_message("Create calculator")
@@ -319,9 +315,7 @@ class TestCalculatorNested:
             mock_anthropic.return_value = mock_client
             mock_client.messages.create.side_effect = [mock_response, mock_response_final]
 
-            agent = ClaudeAgent(
-                system_prompt="You are a calculator assistant", api_key="test-key"
-            )
+            agent = ClaudeAgent(system_prompt="You are a calculator assistant", api_key="test-key")
             agent.process_message("Create a complex calculator layout")
 
             ui_state = agent.get_ui_state()

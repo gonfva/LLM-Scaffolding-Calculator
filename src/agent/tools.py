@@ -31,14 +31,6 @@ DISPLAY_TEXT_TOOL: ToolDefinition = {
                 "type": "string",
                 "description": "Parent container ID to place this element in (optional, defaults to root)",
             },
-            "flex_grow": {
-                "type": "number",
-                "description": "CSS flex-grow property for layout (0-1, default 0)",
-            },
-            "width": {
-                "type": "string",
-                "description": "CSS width property (e.g., '100%', '200px', default 'auto')",
-            },
         },
         "required": ["content", "id"],
     },
@@ -66,14 +58,6 @@ CREATE_BUTTON_TOOL: ToolDefinition = {
             "parent_id": {
                 "type": "string",
                 "description": "Parent container ID to place this button in (optional, defaults to root)",
-            },
-            "flex_grow": {
-                "type": "number",
-                "description": "CSS flex-grow property for layout (0-1, default 0)",
-            },
-            "width": {
-                "type": "string",
-                "description": "CSS width property (e.g., '100%', '200px', default 'auto')",
             },
         },
         "required": ["label", "id", "callback_id"],
@@ -117,7 +101,7 @@ CREATE_CONTAINER_TOOL: ToolDefinition = {
 # Update element tool
 UPDATE_ELEMENT_TOOL: ToolDefinition = {
     "name": "update_element",
-    "description": "Update properties of an existing element. Preserves element type, parent, and unspecified layout properties.",
+    "description": "Update properties of an existing element. Preserves element type, parent, and other properties.",
     "input_schema": {
         "type": "object",
         "properties": {
@@ -133,38 +117,8 @@ UPDATE_ELEMENT_TOOL: ToolDefinition = {
                 "type": "string",
                 "description": "New callback_id for button elements",
             },
-            "flex_grow": {
-                "type": "number",
-                "description": "New flex_grow value",
-            },
-            "width": {
-                "type": "string",
-                "description": "New width value",
-            },
         },
         "required": ["id"],
-    },
-}
-
-# Apply theme tool
-APPLY_THEME_TOOL: ToolDefinition = {
-    "name": "apply_theme",
-    "description": "Apply a theme to the UI. Available themes: minimal, pirate, halloween, cyberpunk, retro, forest. Use this to style the entire interface with a consistent look and feel.",
-    "input_schema": {
-        "type": "object",
-        "properties": {
-            "theme_name": {
-                "type": "string",
-                "enum": ["minimal", "pirate", "halloween", "cyberpunk", "retro", "forest"],
-                "description": "Name of the theme to apply (e.g., 'pirate', 'halloween', 'cyberpunk')",
-            },
-            "custom_overrides": {
-                "type": "object",
-                "description": 'Optional custom CSS variable overrides (e.g., {"primary_color": "#ff0000"})',
-                "additionalProperties": {"type": "string"},
-            },
-        },
-        "required": ["theme_name"],
     },
 }
 
@@ -174,5 +128,4 @@ TOOLS = [
     CREATE_BUTTON_TOOL,
     CREATE_CONTAINER_TOOL,
     UPDATE_ELEMENT_TOOL,
-    APPLY_THEME_TOOL,
 ]

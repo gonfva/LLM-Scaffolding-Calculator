@@ -121,25 +121,6 @@ function handleServerMessage(msg) {
   }
 }
 
-/**
- * Apply theme to the UI
- */
-function applyTheme(themeData) {
-  if (!themeData || !themeData.variables) {
-    console.log("No theme data to apply");
-    return;
-  }
-
-  console.log("Applying theme:", themeData.name);
-
-  // Apply CSS variables to the document root
-  const root = document.documentElement;
-  for (const [key, value] of Object.entries(themeData.variables)) {
-    // Convert camelCase to kebab-case for CSS variables
-    const cssVarName = `--${key.replace(/([A-Z])/g, "-$1").toLowerCase()}`;
-    root.style.setProperty(cssVarName, value);
-  }
-}
 
 /**
  * Render UI elements from state
@@ -147,11 +128,6 @@ function applyTheme(themeData) {
 function renderUIState(uiState) {
   if (!uiState) {
     return;
-  }
-
-  // Apply theme if provided
-  if (uiState.theme) {
-    applyTheme(uiState.theme);
   }
 
   // Render elements if provided
@@ -219,17 +195,6 @@ function createTextElement(elem) {
   textDiv.className = "ui-element ui-text";
   textDiv.id = `elem-${elem.id}`;
   textDiv.textContent = elem.properties.content;
-
-  // Apply layout properties
-  if (elem.layout) {
-    if (elem.layout.flex_grow !== undefined) {
-      textDiv.style.flexGrow = elem.layout.flex_grow;
-    }
-    if (elem.layout.width) {
-      textDiv.style.width = elem.layout.width;
-    }
-  }
-
   return textDiv;
 }
 
@@ -242,16 +207,6 @@ function createButtonElement(elem) {
   button.id = `elem-${elem.id}`;
   button.textContent = elem.properties.label;
   const callbackId = elem.properties.callback_id;
-
-  // Apply layout properties
-  if (elem.layout) {
-    if (elem.layout.flex_grow !== undefined) {
-      button.style.flexGrow = elem.layout.flex_grow;
-    }
-    if (elem.layout.width) {
-      button.style.width = elem.layout.width;
-    }
-  }
 
   button.addEventListener("click", () => {
     console.log("Button clicked:", elem.id, "callback_id:", callbackId);

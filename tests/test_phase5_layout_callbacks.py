@@ -9,22 +9,21 @@ from src.agent.ui_state import UIState
 
 
 def test_ui_element_layout_properties() -> None:
-    """Test UIElement stores layout properties."""
+    """Test UIElement stores text properties without layout styling."""
     ui_state = UIState()
-    ui_state.add_text("Hello", "text_1", flex_grow=1.0, width="100%")
+    ui_state.add_text("Hello", "text_1")
 
     state = ui_state.get_state()
     assert len(state["elements"]) == 1
     elem = state["elements"][0]
     assert elem["type"] == "text"
-    assert elem["layout"]["flex_grow"] == 1.0
-    assert elem["layout"]["width"] == "100%"
+    assert elem["properties"]["content"] == "Hello"
 
 
 def test_button_with_callback_id() -> None:
     """Test button element stores callback_id."""
     ui_state = UIState()
-    ui_state.add_button("Click me", "btn_1", "on_click", flex_grow=0.5)
+    ui_state.add_button("Click me", "btn_1", "on_click")
 
     state = ui_state.get_state()
     assert len(state["elements"]) == 1
@@ -32,7 +31,6 @@ def test_button_with_callback_id() -> None:
     assert elem["type"] == "button"
     assert elem["properties"]["label"] == "Click me"
     assert elem["properties"]["callback_id"] == "on_click"
-    assert elem["layout"]["flex_grow"] == 0.5
 
 
 def test_container_creation() -> None:
@@ -91,7 +89,7 @@ def test_button_callback_id_in_tool() -> None:
 
 
 def test_text_with_layout_properties() -> None:
-    """Test display_text tool with layout properties."""
+    """Test display_text tool creates text element."""
     ui_state = UIState()
 
     from src.agent.tool_executor import ToolExecutor
@@ -102,20 +100,18 @@ def test_text_with_layout_properties() -> None:
         {
             "content": "Result: 42",
             "id": "result_text",
-            "flex_grow": 1,
-            "width": "200px",
         },
     )
 
     assert "successfully" in result
     state = ui_state.get_state()
     elem = state["elements"][0]
-    assert elem["layout"]["flex_grow"] == 1
-    assert elem["layout"]["width"] == "200px"
+    assert elem["type"] == "text"
+    assert elem["properties"]["content"] == "Result: 42"
 
 
 def test_agent_tool_use_with_layout() -> None:
-    """Test agent handles tool use with layout properties."""
+    """Test agent handles tool use for creating buttons."""
     mock_tool_use = ToolUseBlock(
         type="tool_use",
         id="tool_123",
@@ -124,7 +120,6 @@ def test_agent_tool_use_with_layout() -> None:
             "label": "Calculate",
             "id": "btn_1",
             "callback_id": "on_calculate",
-            "flex_grow": 1,
         },
     )
     mock_text = TextBlock(type="text", text="Button created")
@@ -151,13 +146,12 @@ def test_agent_tool_use_with_layout() -> None:
         # Verify response
         assert response == "All done!"
 
-        # Verify UI state has button with layout
+        # Verify UI state has button
         ui_state = agent.get_ui_state()
         assert len(ui_state["elements"]) == 1
         elem = ui_state["elements"][0]
         assert elem["type"] == "button"
         assert elem["properties"]["callback_id"] == "on_calculate"
-        assert elem["layout"]["flex_grow"] == 1
 
 
 def test_multiple_buttons_with_callbacks() -> None:
@@ -239,18 +233,18 @@ def test_container_with_column_layout() -> None:
 
 
 def test_tool_definitions_have_layout_properties() -> None:
-    """Verify tool definitions include layout properties."""
+    """Verify tool definitions have correct properties."""
     from src.agent.tools import CREATE_BUTTON_TOOL, CREATE_CONTAINER_TOOL, DISPLAY_TEXT_TOOL
 
-    # Check display_text has layout properties
-    assert "flex_grow" in DISPLAY_TEXT_TOOL["input_schema"]["properties"]
-    assert "width" in DISPLAY_TEXT_TOOL["input_schema"]["properties"]
+    # Check display_text has content and id
+    assert "content" in DISPLAY_TEXT_TOOL["input_schema"]["properties"]
+    assert "id" in DISPLAY_TEXT_TOOL["input_schema"]["properties"]
 
-    # Check create_button has callback_id and layout properties
+    # Check create_button has callback_id and label
     assert "callback_id" in CREATE_BUTTON_TOOL["input_schema"]["properties"]
     assert "callback_id" in CREATE_BUTTON_TOOL["input_schema"]["required"]
-    assert "flex_grow" in CREATE_BUTTON_TOOL["input_schema"]["properties"]
-    assert "width" in CREATE_BUTTON_TOOL["input_schema"]["properties"]
+    assert "label" in CREATE_BUTTON_TOOL["input_schema"]["properties"]
+    assert "label" in CREATE_BUTTON_TOOL["input_schema"]["required"]
 
     # Check create_container exists and has proper properties
     assert "flex_direction" in CREATE_CONTAINER_TOOL["input_schema"]["properties"]

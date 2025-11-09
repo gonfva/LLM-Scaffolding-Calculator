@@ -113,35 +113,35 @@ class TestElementUpdate:
         assert btn_elem["properties"]["callback_id"] == "new_callback"
 
     def test_update_element_flex_grow(self) -> None:
-        """Test updating element flex_grow property."""
+        """Test updating element content via update_element."""
         ui_state = UIState()
         ui_state.add_text("Text", "text_1")
 
-        success = ui_state.update_element("text_1", flex_grow=1.0)
+        success = ui_state.update_element("text_1", content="Updated Text")
         assert success is True
 
         state = ui_state.get_state()
         text_elem = next(e for e in state["elements"] if e["id"] == "text_1")
-        assert text_elem.get("layout", {}).get("flex_grow") == 1.0
+        assert text_elem["properties"]["content"] == "Updated Text"
 
     def test_update_element_width(self) -> None:
-        """Test updating element width property."""
+        """Test updating element preserves properties."""
         ui_state = UIState()
-        ui_state.add_text("Text", "text_1", width="100px")
+        ui_state.add_text("Text", "text_1")
 
-        success = ui_state.update_element("text_1", width="200px")
+        success = ui_state.update_element("text_1", content="New Text")
         assert success is True
 
         state = ui_state.get_state()
         text_elem = next(e for e in state["elements"] if e["id"] == "text_1")
-        assert text_elem.get("layout", {}).get("width") == "200px"
+        assert text_elem["properties"]["content"] == "New Text"
 
     def test_update_preserves_other_properties(self) -> None:
-        """Test that update preserves unspecified properties."""
+        """Test that update preserves callback_id for buttons."""
         ui_state = UIState()
-        ui_state.add_button("Original", "btn_1", "callback_1", flex_grow=0.5, width="100px")
+        ui_state.add_button("Original", "btn_1", "callback_1")
 
-        # Update only content
+        # Update only label
         success = ui_state.update_element("btn_1", content="Updated")
         assert success is True
 
@@ -149,8 +149,6 @@ class TestElementUpdate:
         btn_elem = next(e for e in state["elements"] if e["id"] == "btn_1")
         assert btn_elem["properties"]["label"] == "Updated"
         assert btn_elem["properties"]["callback_id"] == "callback_1"
-        assert btn_elem.get("layout", {}).get("flex_grow") == 0.5
-        assert btn_elem.get("layout", {}).get("width") == "100px"
 
     def test_update_nonexistent_element(self) -> None:
         """Test updating nonexistent element returns False."""

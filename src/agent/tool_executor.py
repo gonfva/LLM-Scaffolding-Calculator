@@ -39,8 +39,6 @@ class ToolExecutor:
             return self._execute_create_container(tool_input)
         elif tool_name == "update_element":
             return self._execute_update_element(tool_input)
-        elif tool_name == "apply_theme":
-            return self._execute_apply_theme(tool_input)
         else:
             return f"Error: Unknown tool '{tool_name}'"
 
@@ -61,12 +59,8 @@ class ToolExecutor:
                 return "Error: display_text requires 'content' and 'id'"
 
             parent_id = tool_input.get("parent_id")
-            flex_grow = tool_input.get("flex_grow")
-            width = tool_input.get("width")
 
-            self.ui_state.add_text(
-                content, element_id, parent_id=parent_id, flex_grow=flex_grow, width=width
-            )
+            self.ui_state.add_text(content, element_id, parent_id=parent_id)
             logger.info(f"Displayed text: {element_id}")
             return f"Text '{element_id}' displayed successfully"
         except Exception as e:
@@ -92,16 +86,12 @@ class ToolExecutor:
                 return "Error: create_button requires 'label', 'id', and 'callback_id'"
 
             parent_id = tool_input.get("parent_id")
-            flex_grow = tool_input.get("flex_grow")
-            width = tool_input.get("width")
 
             self.ui_state.add_button(
                 label,
                 element_id,
                 callback_id,
                 parent_id=parent_id,
-                flex_grow=flex_grow,
-                width=width,
             )
             logger.info(f"Created button: {element_id}")
             return f"Button '{element_id}' created successfully"
@@ -130,9 +120,7 @@ class ToolExecutor:
             justify_content = tool_input.get("justify_content")
             gap = tool_input.get("gap")
 
-            self.ui_state.add_container(
-                element_id, flex_direction, parent_id, justify_content, gap
-            )
+            self.ui_state.add_container(element_id, flex_direction, parent_id, justify_content, gap)
             logger.info(f"Created container: {element_id}")
             return f"Container '{element_id}' created successfully"
         except Exception as e:
@@ -144,7 +132,7 @@ class ToolExecutor:
         """Execute update_element tool.
 
         Args:
-            tool_input: Must contain 'id' key, optional: content, callback_id, flex_grow, width
+            tool_input: Must contain 'id' key, optional: content, callback_id
 
         Returns:
             Success or error message
@@ -157,15 +145,11 @@ class ToolExecutor:
 
             content = tool_input.get("content")
             callback_id = tool_input.get("callback_id")
-            flex_grow = tool_input.get("flex_grow")
-            width = tool_input.get("width")
 
             success = self.ui_state.update_element(
                 element_id,
                 content=content,
                 callback_id=callback_id,
-                flex_grow=flex_grow,
-                width=width,
             )
 
             if success:
@@ -175,33 +159,5 @@ class ToolExecutor:
                 return f"Error: Element '{element_id}' not found"
         except Exception as e:
             error_msg = f"Error updating element: {e}"
-            logger.error(error_msg)
-            return error_msg
-
-    def _execute_apply_theme(self, tool_input: dict[str, Any]) -> str:
-        """Execute apply_theme tool.
-
-        Args:
-            tool_input: Must contain 'theme_name' key
-
-        Returns:
-            Success or error message
-        """
-        try:
-            theme_name = tool_input.get("theme_name")
-
-            if not theme_name:
-                return "Error: apply_theme requires 'theme_name'"
-
-            custom_overrides = tool_input.get("custom_overrides")
-
-            success = self.ui_state.apply_theme(theme_name, custom_overrides)
-            if success:
-                logger.info(f"Applied theme: {theme_name}")
-                return f"Theme '{theme_name}' applied successfully"
-            else:
-                return f"Error: Theme '{theme_name}' not found"
-        except Exception as e:
-            error_msg = f"Error applying theme: {e}"
             logger.error(error_msg)
             return error_msg

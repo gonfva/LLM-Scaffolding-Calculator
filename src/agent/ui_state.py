@@ -3,8 +3,6 @@
 from dataclasses import dataclass, field
 from typing import Any
 
-from src.agent.themes import ThemeVariables, get_theme
-
 
 @dataclass
 class UIElement:
@@ -36,8 +34,6 @@ class UIState:
     def __init__(self) -> None:
         """Initialize empty UI state."""
         self.elements: list[UIElement] = []
-        self.current_theme: str = "minimal"
-        self.theme_variables: ThemeVariables | None = None
 
     def _validate_parent(self, parent_id: str | None) -> str | None:
         """Validate and return parent ID, or None for root level.
@@ -82,8 +78,6 @@ class UIState:
         content: str,
         element_id: str,
         parent_id: str | None = None,
-        flex_grow: float | None = None,
-        width: str | None = None,
     ) -> None:
         """Add a text element to the UI.
 
@@ -91,22 +85,13 @@ class UIState:
             content: Text content to display
             element_id: Unique identifier for this element
             parent_id: Parent container ID (None = root level)
-            flex_grow: CSS flex-grow property
-            width: CSS width property
         """
-        layout: dict[str, float | str] = {}
-        if flex_grow is not None:
-            layout["flex_grow"] = flex_grow
-        if width is not None:
-            layout["width"] = width
-
         validated_parent = self._validate_parent(parent_id)
 
         element = UIElement(
             type="text",
             id=element_id,
             properties={"content": content},
-            layout=layout,
             parent_id=validated_parent,
         )
         self.elements.append(element)
@@ -117,8 +102,6 @@ class UIState:
         element_id: str,
         callback_id: str,
         parent_id: str | None = None,
-        flex_grow: float | None = None,
-        width: str | None = None,
     ) -> None:
         """Add a button element to the UI.
 
@@ -127,22 +110,13 @@ class UIState:
             element_id: Unique identifier for this button
             callback_id: Identifier sent back when button is clicked
             parent_id: Parent container ID (None = root level)
-            flex_grow: CSS flex-grow property
-            width: CSS width property
         """
-        layout: dict[str, float | str] = {}
-        if flex_grow is not None:
-            layout["flex_grow"] = flex_grow
-        if width is not None:
-            layout["width"] = width
-
         validated_parent = self._validate_parent(parent_id)
 
         element = UIElement(
             type="button",
             id=element_id,
             properties={"label": label, "callback_id": callback_id},
-            layout=layout,
             parent_id=validated_parent,
         )
         self.elements.append(element)
@@ -180,66 +154,31 @@ class UIState:
         )
         self.elements.append(element)
 
-    def apply_theme(
-        self,
-        theme_name: str,
-        custom_overrides: dict[str, str] | None = None,
-    ) -> bool:
-        """Apply a theme to the UI.
-
-        Args:
-            theme_name: Name of the theme to apply
-            custom_overrides: Optional custom CSS variable overrides
-
-        Returns:
-            True if theme was applied successfully, False otherwise
-        """
-        theme = get_theme(theme_name)
-        if not theme:
-            return False
-
-        self.current_theme = theme_name
-        variables = dict(theme["variables"])
-        if custom_overrides:
-            variables.update(custom_overrides)
-        self.theme_variables = variables  # type: ignore[assignment]
-        return True
-
     def get_state(self) -> dict[str, Any]:
         """Get current UI state as a dictionary.
 
         Returns:
-            Dictionary representation of current UI elements and theme
+            Dictionary representation of current UI elements
         """
-        state: dict[str, Any] = {
+        return {
             "elements": [elem.to_dict() for elem in self.elements],
         }
-        if self.theme_variables:
-            state["theme"] = {
-                "name": self.current_theme,
-                "variables": self.theme_variables,
-            }
-        return state
 
     def update_element(
         self,
         element_id: str,
         content: str | None = None,
         callback_id: str | None = None,
-        flex_grow: float | None = None,
-        width: str | None = None,
     ) -> bool:
         """Update an existing element's properties.
 
-        Preserves element type, parent, and other layout properties not specified.
+        Preserves element type, parent, and other properties not specified.
         Only updates the properties that are provided.
 
         Args:
             element_id: ID of element to update
             content: New content/label (for text and button elements)
             callback_id: New callback_id (for button elements)
-            flex_grow: New flex_grow value
-            width: New width value
 
         Returns:
             True if element was updated, False if element not found
@@ -259,12 +198,6 @@ class UIState:
         if callback_id is not None:
             if element.type == "button":
                 element.properties["callback_id"] = callback_id
-
-        # Update layout if provided
-        if flex_grow is not None:
-            element.layout["flex_grow"] = flex_grow
-        if width is not None:
-            element.layout["width"] = width
 
         return True
 
