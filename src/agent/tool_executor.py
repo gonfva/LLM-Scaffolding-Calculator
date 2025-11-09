@@ -104,23 +104,39 @@ class ToolExecutor:
         """Execute create_container tool.
 
         Args:
-            tool_input: Must contain 'id' and 'flex_direction' keys
+            tool_input: Must contain 'id'. Either 'flex_direction' for flexbox layout,
+                       or 'rows'/'cols' for grid layout.
 
         Returns:
             Success or error message
         """
         try:
             element_id = tool_input.get("id")
+
+            if not element_id:
+                return "Error: create_container requires 'id'"
+
+            # Extract parameters
             flex_direction = tool_input.get("flex_direction")
-
-            if not element_id or not flex_direction:
-                return "Error: create_container requires 'id' and 'flex_direction'"
-
             parent_id = tool_input.get("parent_id")
             justify_content = tool_input.get("justify_content")
             gap = tool_input.get("gap")
+            rows = tool_input.get("rows")
+            cols = tool_input.get("cols")
 
-            self.ui_state.add_container(element_id, flex_direction, parent_id, justify_content, gap)
+            # Validate that either flex_direction or grid parameters are provided
+            if not flex_direction and rows is None and cols is None:
+                return "Error: create_container requires either 'flex_direction' or 'rows'/'cols'"
+
+            self.ui_state.add_container(
+                element_id,
+                flex_direction=flex_direction,
+                parent_id=parent_id,
+                justify_content=justify_content,
+                gap=gap,
+                rows=rows,
+                cols=cols,
+            )
             logger.info(f"Created container: {element_id}")
             return f"Container '{element_id}' created successfully"
         except Exception as e:

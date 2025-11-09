@@ -67,7 +67,7 @@ CREATE_BUTTON_TOOL: ToolDefinition = {
 # Create container tool
 CREATE_CONTAINER_TOOL: ToolDefinition = {
     "name": "create_container",
-    "description": "Create a container to group UI elements with flexbox layout.",
+    "description": "Create a container to group UI elements with flexbox or grid layout.",
     "input_schema": {
         "type": "object",
         "properties": {
@@ -78,7 +78,7 @@ CREATE_CONTAINER_TOOL: ToolDefinition = {
             "flex_direction": {
                 "type": "string",
                 "enum": ["row", "column"],
-                "description": "Direction of flex layout (row for horizontal, column for vertical)",
+                "description": "Direction of flex layout (row for horizontal, column for vertical). Use only for flexbox layouts.",
             },
             "parent_id": {
                 "type": "string",
@@ -93,8 +93,16 @@ CREATE_CONTAINER_TOOL: ToolDefinition = {
                 "type": "string",
                 "description": "Space between items (e.g., '10px', '1rem')",
             },
+            "rows": {
+                "type": "integer",
+                "description": "Number of rows for grid layout (e.g., 4 for a 4-row calculator grid). When specified, uses CSS Grid instead of flexbox.",
+            },
+            "cols": {
+                "type": "integer",
+                "description": "Number of columns for grid layout (e.g., 3 for a 3-column calculator grid). When specified, uses CSS Grid instead of flexbox.",
+            },
         },
-        "required": ["id", "flex_direction"],
+        "required": ["id"],
     },
 }
 

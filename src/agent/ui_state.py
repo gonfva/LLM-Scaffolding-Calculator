@@ -124,25 +124,47 @@ class UIState:
     def add_container(
         self,
         element_id: str,
-        flex_direction: str,
+        flex_direction: str | None = None,
         parent_id: str | None = None,
         justify_content: str | None = None,
         gap: str | None = None,
+        rows: int | None = None,
+        cols: int | None = None,
     ) -> None:
         """Add a container element for grouping other elements.
 
+        Supports both flexbox and grid layouts. If rows and cols are specified,
+        creates a grid layout. Otherwise creates a flex layout.
+
         Args:
             element_id: Unique identifier for this container
-            flex_direction: Direction of flex layout ("row" or "column")
+            flex_direction: Direction of flex layout ("row" or "column"). Required for flex layout.
             parent_id: Parent container ID (None = root level)
             justify_content: Alignment along main axis
             gap: Space between items
+            rows: Number of rows for grid layout
+            cols: Number of columns for grid layout
         """
-        layout: dict[str, str] = {"flex_direction": flex_direction}
-        if justify_content is not None:
-            layout["justify_content"] = justify_content
-        if gap is not None:
-            layout["gap"] = gap
+        layout: dict[str, Any] = {}
+
+        # Grid layout (when rows and cols are specified)
+        if rows is not None or cols is not None:
+            if rows is not None:
+                layout["rows"] = rows
+            if cols is not None:
+                layout["cols"] = cols
+            if gap is not None:
+                layout["gap"] = gap
+        # Flexbox layout (default)
+        else:
+            if flex_direction is not None:
+                layout["flex_direction"] = flex_direction
+            else:
+                layout["flex_direction"] = "column"  # Default to column if not specified
+            if justify_content is not None:
+                layout["justify_content"] = justify_content
+            if gap is not None:
+                layout["gap"] = gap
 
         validated_parent = self._validate_parent(parent_id)
 

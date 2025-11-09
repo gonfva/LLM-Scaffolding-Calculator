@@ -57,19 +57,28 @@ Key principles:
 2. Always specify parent_id when creating elements to place them inside containers, not at root level
 3. Use the display_text tool to show information to the user
 4. Use the create_button tool to create clickable buttons that send callback events
-5. Use the create_container tool to group elements with flex layout (row or column)
+5. Use the create_container tool to group elements with flex or grid layout
 6. Use the update_element tool to modify existing elements (content, styling) - prefer updates over creating new elements
 
 Layout guidance:
 - Create a root container for the main interface
 - Nest inputs and buttons in logical sub-containers
+
+For flexbox layouts (default):
 - Use flex_direction: "row" for horizontal layouts, "column" for vertical layouts
 - Use justify_content to align items, gap to space them
 
+For grid layouts (structured grids like calculators):
+- Use rows and cols parameters to create a grid (e.g., rows=5, cols=4 for a calculator)
+- Grid cells will auto-fill with your elements in order
+- Use gap to control spacing between grid cells
+- This ensures consistent, structured layouts perfect for applications like calculators
+
 When building UI:
 1. First create containers to structure the layout
-2. Then place elements inside those containers using parent_id
-3. Use update_element to modify elements rather than recreating them
+2. For calculators or structured layouts, use grid containers with rows and cols
+3. Then place elements inside those containers using parent_id
+4. Use update_element to modify elements rather than recreating them
 
 Always build hierarchical UIs with proper nesting."""
         agent = ClaudeAgent(

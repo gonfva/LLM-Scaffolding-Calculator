@@ -455,3 +455,120 @@ class TestGetElement:
         elem = ui_state.get_element("text_1")
         assert elem is not None
         assert elem.parent_id == "section"
+
+
+class TestGridLayout:
+    """Tests for CSS Grid layout support."""
+
+    def test_create_grid_container_with_rows_cols(self) -> None:
+        """Test creating a grid container with rows and cols."""
+        ui_state = UIState()
+        ui_state.add_container("grid", rows=4, cols=3)
+
+        state = ui_state.get_state()
+        grid = next(e for e in state["elements"] if e["id"] == "grid")
+        assert grid["type"] == "container"
+        assert grid["layout"]["rows"] == 4
+        assert grid["layout"]["cols"] == 3
+
+    def test_grid_container_with_gap(self) -> None:
+        """Test grid container can specify gap spacing."""
+        ui_state = UIState()
+        ui_state.add_container("grid", rows=4, cols=3, gap="8px")
+
+        state = ui_state.get_state()
+        grid = next(e for e in state["elements"] if e["id"] == "grid")
+        assert grid["layout"]["gap"] == "8px"
+
+    def test_grid_container_only_rows(self) -> None:
+        """Test grid container with only rows specified."""
+        ui_state = UIState()
+        ui_state.add_container("grid", rows=5)
+
+        state = ui_state.get_state()
+        grid = next(e for e in state["elements"] if e["id"] == "grid")
+        assert grid["layout"]["rows"] == 5
+        assert "cols" not in grid["layout"]
+
+    def test_grid_container_only_cols(self) -> None:
+        """Test grid container with only cols specified."""
+        ui_state = UIState()
+        ui_state.add_container("grid", cols=4)
+
+        state = ui_state.get_state()
+        grid = next(e for e in state["elements"] if e["id"] == "grid")
+        assert grid["layout"]["cols"] == 4
+        assert "rows" not in grid["layout"]
+
+    def test_execute_create_grid_container(self) -> None:
+        """Test creating grid container via tool executor."""
+        ui_state = UIState()
+        executor = ToolExecutor(ui_state)
+
+        result = executor.execute_tool(
+            "create_container",
+            {"id": "button_grid", "rows": 4, "cols": 3, "gap": "10px"},
+        )
+
+        assert "successfully" in result
+        state = ui_state.get_state()
+        grid = next(e for e in state["elements"] if e["id"] == "button_grid")
+        assert grid["layout"]["rows"] == 4
+        assert grid["layout"]["cols"] == 3
+        assert grid["layout"]["gap"] == "10px"
+
+    def test_execute_create_grid_with_children(self) -> None:
+        """Test adding buttons to a grid container."""
+        ui_state = UIState()
+        executor = ToolExecutor(ui_state)
+
+        # Create grid
+        executor.execute_tool(
+            "create_container",
+            {"id": "calc_grid", "rows": 5, "cols": 4, "gap": "8px"},
+        )
+
+        # Add buttons to grid
+        for i in range(5):
+            executor.execute_tool(
+                "create_button",
+                {
+                    "id": f"btn_{i}",
+                    "label": str(i),
+                    "callback_id": f"on_{i}",
+                    "parent_id": "calc_grid",
+                },
+            )
+
+        state = ui_state.get_state()
+        assert len([e for e in state["elements"] if e["type"] == "button"]) == 5
+        assert all(
+            btn.get("parent_id") == "calc_grid"
+            for btn in state["elements"]
+            if btn["type"] == "button"
+        )
+
+    def test_flex_container_requires_flex_direction_or_grid_params(self) -> None:
+        """Test that container creation requires either flex_direction or grid params."""
+        ui_state = UIState()
+        executor = ToolExecutor(ui_state)
+
+        result = executor.execute_tool("create_container", {"id": "bad_container"})
+
+        assert "Error" in result or "requires" in result
+
+    def test_grid_takes_precedence_over_flex_direction(self) -> None:
+        """Test that when both grid params and flex_direction are specified, grid is used."""
+        ui_state = UIState()
+        # Create container with both grid and flex params
+        ui_state.add_container(
+            "container", flex_direction="row", rows=4, cols=3
+        )
+
+        state = ui_state.get_state()
+        container = next(e for e in state["elements"] if e["id"] == "container")
+        # Should have grid params, not flex_direction
+        assert "rows" in container["layout"]
+        assert "cols" in container["layout"]
+        # flex_direction should not be in grid layout
+        assert "flex_direction" not in container["layout"]

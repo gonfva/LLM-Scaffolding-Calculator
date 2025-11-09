@@ -192,24 +192,44 @@ function createButtonElement(elem) {
 }
 
 /**
- * Create a container element with flex layout (returns DOM element without adding to container)
+ * Create a container element with flex or grid layout (returns DOM element without adding to container)
  */
 function createContainerElement(elem) {
   const container = document.createElement("div");
   container.className = "ui-element ui-container";
   container.id = `elem-${elem.id}`;
 
-  // Apply flex layout properties
+  // Apply layout properties
   if (elem.layout) {
-    container.style.display = "flex";
-    if (elem.layout.flex_direction) {
-      container.style.flexDirection = elem.layout.flex_direction;
+    // Grid layout
+    if (elem.layout.rows !== undefined || elem.layout.cols !== undefined) {
+      container.style.display = "grid";
+      if (elem.layout.rows !== undefined) {
+        // Create rows with equal heights (1fr for each row)
+        const rows = Array(elem.layout.rows).fill("1fr").join(" ");
+        container.style.gridTemplateRows = rows;
+      }
+      if (elem.layout.cols !== undefined) {
+        // Create columns with equal widths (1fr for each col)
+        const cols = Array(elem.layout.cols).fill("1fr").join(" ");
+        container.style.gridTemplateColumns = cols;
+      }
+      if (elem.layout.gap) {
+        container.style.gap = elem.layout.gap;
+      }
     }
-    if (elem.layout.justify_content) {
-      container.style.justifyContent = elem.layout.justify_content;
-    }
-    if (elem.layout.gap) {
-      container.style.gap = elem.layout.gap;
+    // Flexbox layout
+    else {
+      container.style.display = "flex";
+      if (elem.layout.flex_direction) {
+        container.style.flexDirection = elem.layout.flex_direction;
+      }
+      if (elem.layout.justify_content) {
+        container.style.justifyContent = elem.layout.justify_content;
+      }
+      if (elem.layout.gap) {
+        container.style.gap = elem.layout.gap;
+      }
     }
   }
 
