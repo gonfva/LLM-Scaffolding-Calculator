@@ -11,8 +11,6 @@ const elements = {
   status: document.getElementById("status"),
   statusText: document.getElementById("status-text"),
   messages: document.getElementById("messages"),
-  input: document.getElementById("input"),
-  sendBtn: document.getElementById("send-btn"),
   uiContainer: document.getElementById("ui-container"),
 };
 
@@ -30,9 +28,7 @@ function connectWebSocket() {
   ws.onopen = () => {
     console.log("WebSocket connected");
     updateStatus(true);
-    elements.input.disabled = false;
-    elements.sendBtn.disabled = false;
-    addMessage("System", "Connected to backend");
+    addMessage("System", "Connected to backend. LLM initializing...");
   };
 
   ws.onmessage = (event) => {
@@ -54,8 +50,6 @@ function connectWebSocket() {
   ws.onclose = () => {
     console.log("WebSocket disconnected");
     updateStatus(false);
-    elements.input.disabled = true;
-    elements.sendBtn.disabled = true;
     addMessage("System", "Disconnected from backend");
   };
 }
@@ -87,32 +81,18 @@ function addMessage(source, text, type = "info") {
   elements.messages.scrollTop = elements.messages.scrollHeight;
 }
 
-/**
- * Send message to server
- */
-function sendMessage() {
-  const text = elements.input.value.trim();
-  if (!text || !ws || ws.readyState !== WebSocket.OPEN) {
-    return;
-  }
-
-  console.log("Sending message:", text);
-  addMessage("Client", text, "sent");
-  ws.send(text);
-  elements.input.value = "";
-  elements.input.focus();
-}
 
 /**
  * Handle server messages (init, response, error)
  */
 function handleServerMessage(msg) {
   if (msg.type === "init") {
-    // Initial connection message
+    // Initial auto-initialization message
+    addMessage("You", "Create a calculator", "sent");
     addMessage("Assistant", msg.message, "received");
     renderUIState(msg.ui_state);
   } else if (msg.type === "response") {
-    // Response to user message
+    // Response to button clicks
     addMessage("Assistant", msg.message, "received");
     renderUIState(msg.ui_state);
   } else if (msg.type === "error") {
@@ -258,15 +238,6 @@ function sendButtonCallback(callbackId) {
     })
   );
 }
-
-/**
- * Handle Enter key in input field
- */
-elements.input.addEventListener("keypress", (event) => {
-  if (event.key === "Enter") {
-    sendMessage();
-  }
-});
 
 /**
  * Initialize on page load

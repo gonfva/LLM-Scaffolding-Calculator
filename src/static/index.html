@@ -47,15 +47,27 @@
 
         body {
             font-family: var(--font-family);
-            background: var(--bg-secondary);
-            padding: 20px;
             color: var(--text-primary);
             transition: background-color var(--transition-duration), color var(--transition-duration);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+        }
+
+        #main-container {
+            flex: 0 0 80%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: var(--bg-secondary);
+            overflow-y: auto;
         }
 
         .container {
             max-width: 600px;
-            margin: 0 auto;
+            width: 100%;
             background: var(--bg-primary);
             border-radius: var(--border-radius);
             padding: 30px;
@@ -67,23 +79,39 @@
             color: var(--text-primary);
         }
 
+        #footer {
+            flex: 0 0 20%;
+            display: flex;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            padding: 15px;
+            gap: 20px;
+            overflow: hidden;
+        }
+
         .status-section {
-            margin-bottom: 30px;
+            flex: 0 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
         .status-label {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-weight: var(--font-weight-bold);
+            margin-bottom: 0;
         }
 
         .status {
-            padding: 12px 16px;
+            padding: 8px 12px;
             border-radius: 4px;
             font-weight: 500;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            font-size: 13px;
         }
 
         .status.connected {
@@ -99,8 +127,8 @@
         }
 
         .status-indicator {
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             display: inline-block;
         }
@@ -120,29 +148,36 @@
         }
 
         .messages-section {
-            margin-bottom: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 0;
         }
 
         .messages-label {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-weight: var(--font-weight-bold);
+            margin-bottom: 0;
         }
 
         .messages {
-            background: #f9f9f9;
-            border: 1px solid #ddd;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
             border-radius: 4px;
             padding: 12px;
-            max-height: 200px;
             overflow-y: auto;
             font-family: monospace;
-            font-size: 12px;
+            font-size: 11px;
+            flex: 1;
         }
 
         .message {
             padding: 4px 0;
-            color: #333;
+            color: var(--text-primary);
+            word-break: break-word;
         }
 
         .message.sent {
@@ -151,51 +186,6 @@
 
         .message.received {
             color: #009900;
-        }
-
-        .input-section {
-            display: flex;
-            gap: 10px;
-        }
-
-        input {
-            flex: 1;
-            padding: 10px 12px;
-            border: var(--border-width) solid var(--input-border);
-            border-radius: var(--border-radius);
-            font-size: var(--font-size-base);
-            background: var(--input-bg);
-            color: var(--input-text);
-            font-family: var(--font-family);
-            transition: border-color var(--transition-duration), box-shadow var(--transition-duration);
-        }
-
-        input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
-        }
-
-        button {
-            padding: 10px 20px;
-            background: var(--button-bg);
-            color: var(--button-text);
-            border: var(--button-border);
-            border-radius: var(--border-radius);
-            font-weight: var(--font-weight-normal);
-            cursor: pointer;
-            transition: background var(--transition-duration);
-            font-family: var(--font-family);
-            font-size: var(--font-size-base);
-        }
-
-        button:hover {
-            background: var(--button-hover-bg);
-        }
-
-        button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
         }
 
         #ui-container {
@@ -281,11 +271,16 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Agentic Calculator</h1>
+    <div id="main-container">
+        <div class="container">
+            <h1>Agentic Calculator</h1>
+            <div id="ui-container"></div>
+        </div>
+    </div>
 
+    <div id="footer">
         <div class="status-section">
-            <div class="status-label">Connection Status</div>
+            <div class="status-label">Status</div>
             <div id="status" class="status disconnected">
                 <span class="status-indicator"></span>
                 <span id="status-text">Disconnected</span>
@@ -293,15 +288,8 @@
         </div>
 
         <div class="messages-section">
-            <div class="messages-label">Messages</div>
+            <div class="messages-label">Conversation</div>
             <div id="messages" class="messages"></div>
-        </div>
-
-        <div id="ui-container"></div>
-
-        <div class="input-section">
-            <input type="text" id="input" placeholder="Enter message..." disabled>
-            <button id="send-btn" onclick="sendMessage()" disabled>Send</button>
         </div>
     </div>
 

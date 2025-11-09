@@ -54,32 +54,33 @@ Key principles:
 4. Use the create_button tool to create clickable buttons that send callback events
 5. Use the create_container tool to group elements with flex layout (row or column)
 6. Use the update_element tool to modify existing elements (content, styling) - prefer updates over creating new elements
-7. Use the apply_theme tool to apply visual themes to the entire UI
 
 Layout guidance:
 - Create a root container for the main interface
 - Nest inputs and buttons in logical sub-containers
 - Use flex_direction: "row" for horizontal layouts, "column" for vertical layouts
 - Use justify_content to align items, gap to space them
-- Use flex_grow and width to control element sizing
 
 When building UI:
 1. First create containers to structure the layout
 2. Then place elements inside those containers using parent_id
 3. Use update_element to modify elements rather than recreating them
-4. Apply themes early to set the visual style
 
 Always build hierarchical UIs with proper nesting."""
         agent = ClaudeAgent(
             system_prompt=system_prompt,
             api_key=api_key,
         )
-        welcome_msg = agent.send_welcome_message()
 
-        # Send initial message with empty UI state
+        # Auto-initialize LLM with "Create a calculator" prompt
+        logger.info("Auto-initializing LLM with 'Create a calculator'")
+        initial_prompt = "Create a calculator"
+        llm_response = agent.process_message(initial_prompt)
+
+        # Send initial message with LLM-generated UI
         initial_message: dict[str, Any] = {
             "type": "init",
-            "message": welcome_msg,
+            "message": llm_response,
             "ui_state": agent.get_ui_state(),
         }
         await websocket.send_json(initial_message)
