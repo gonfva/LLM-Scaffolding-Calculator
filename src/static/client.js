@@ -86,8 +86,11 @@ function addMessage(source, text, type = "info") {
  * Handle server messages (init, response, error)
  */
 function handleServerMessage(msg) {
-  if (msg.type === "init") {
-    // Initial auto-initialization message
+  if (msg.type === "connected") {
+    // Immediate connection confirmation - LLM will initialize in background
+    addMessage("System", "Connected to backend");
+  } else if (msg.type === "init") {
+    // Initial auto-initialization message with LLM response
     addMessage("You", "Create a calculator", "sent");
     addMessage("Assistant", msg.message, "received");
     renderUIState(msg.ui_state);

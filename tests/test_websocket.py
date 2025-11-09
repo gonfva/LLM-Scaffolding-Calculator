@@ -34,6 +34,11 @@ def test_websocket_receives_welcome_message(client: TestClient) -> None:
         mock_anthropic_instance.messages.create.return_value = mock_response
 
         with client.websocket_connect("/ws") as websocket:
+            # First message is connection confirmation
+            msg = websocket.receive_json()
+            assert msg["type"] == "connected"
+
+            # Then init message with LLM response
             msg = websocket.receive_json()
             assert msg["type"] == "init"
             assert "Calculator" in msg["message"]
@@ -65,6 +70,10 @@ def test_websocket_message_to_claude(client: TestClient) -> None:
         ]
 
         with client.websocket_connect("/ws") as websocket:
+            # Receive connected message
+            connected_msg = websocket.receive_json()
+            assert connected_msg["type"] == "connected"
+
             # Receive init message
             init_msg = websocket.receive_json()
             assert init_msg["type"] == "init"
@@ -108,6 +117,9 @@ def test_websocket_multiple_messages(client: TestClient) -> None:
         ]
 
         with client.websocket_connect("/ws") as websocket:
+            # Receive connected message
+            websocket.receive_json()
+
             # Receive init message
             websocket.receive_json()
 
@@ -121,3 +133,57 @@ def test_websocket_multiple_messages(client: TestClient) -> None:
             msg2 = websocket.receive_json()
             assert msg2["type"] == "response"
             assert "Display: 10" in msg2["message"]
+
+
+def test_websocket_initialization_error_handling(client: TestClient) -> None:
+    """Test that initialization errors are sent to client properly."""
+    with (
+        patch("src.app.main.get_anthropic_api_key", return_value="test-api-key"),
+        patch("src.agent.claude_agent.Anthropic") as mock_anthropic,
+    ):
+        mock_anthropic_instance = MagicMock()
+        mock_anthropic.return_value = mock_anthropic_instance
+        # Make process_message raise an exception
+        mock_anthropic_instance.messages.create.side_effect = RuntimeError("API connection failed")
+
+        with client.websocket_connect("/ws") as websocket:
+            # First message is connection confirmation
+            msg = websocket.receive_json()
+            assert msg["type"] == "connected"
+
+            # Then error message from initialization
+            msg = websocket.receive_json()
+            assert msg["type"] == "error"
+            assert "Initialization error" in msg["message"]
+            assert "API connection failed" in msg["message"]
+
+
+def test_websocket_receives_connected_message_immediately(client: TestClient) -> None:
+    """Test that client receives 'connected' message immediately, before LLM init.
+
+    This test verifies that WebSocket doesn't block on LLM initialization.
+    Client should know it's connected right away, then receive init message when ready.
+    """
+    from anthropic.types import TextBlock
+
+    mock_text_block = TextBlock(type="text", text="Calculator ready")
+    mock_response = MagicMock()
+    mock_response.content = [mock_text_block]
+
+    with (
+        patch("src.app.main.get_anthropic_api_key", return_value="test-api-key"),
+        patch("src.agent.claude_agent.Anthropic") as mock_anthropic,
+    ):
+        mock_anthropic_instance = MagicMock()
+        mock_anthropic.return_value = mock_anthropic_instance
+        mock_anthropic_instance.messages.create.return_value = mock_response
+
+        with client.websocket_connect("/ws") as websocket:
+            # First message should be "connected" confirmation (not waiting for LLM)
+            msg = websocket.receive_json()
+            assert msg["type"] == "connected"
+
+            # Then eventually receive init with LLM response
+            msg = websocket.receive_json()
+            assert msg["type"] == "init"
+            assert "ui_state" in msg

@@ -40,6 +40,11 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
     await websocket.accept()
     logger.info("Client connected")
 
+    # Send immediate "connected" confirmation
+    connected_msg: dict[str, Any] = {"type": "connected"}
+    await websocket.send_json(connected_msg)
+    logger.info("Sent connected confirmation to client")
+
     try:
         # Initialize agent on connection
         api_key = get_anthropic_api_key()
@@ -75,15 +80,32 @@ Always build hierarchical UIs with proper nesting."""
         # Auto-initialize LLM with "Create a calculator" prompt
         logger.info("Auto-initializing LLM with 'Create a calculator'")
         initial_prompt = "Create a calculator"
-        llm_response = agent.process_message(initial_prompt)
-
-        # Send initial message with LLM-generated UI
-        initial_message: dict[str, Any] = {
-            "type": "init",
-            "message": llm_response,
-            "ui_state": agent.get_ui_state(),
-        }
-        await websocket.send_json(initial_message)
+        try:
+            logger.info("Calling agent.process_message...")
+            llm_response = agent.process_message(initial_prompt)
+            logger.info(
+                f"Got response from LLM: {llm_response[:100] if llm_response else 'None'}..."
+            )
+            # Send initial message with LLM-generated UI
+            initial_message: dict[str, Any] = {
+                "type": "init",
+                "message": llm_response,
+                "ui_state": agent.get_ui_state(),
+            }
+            logger.info("Sending init message to client...")
+            await websocket.send_json(initial_message)
+            logger.info("Init message sent successfully")
+        except Exception as init_error:
+            logger.error(f"Error during initialization: {init_error}", exc_info=True)
+            try:
+                error_msg: dict[str, Any] = {
+                    "type": "error",
+                    "message": f"Initialization error: {str(init_error)}",
+                }
+                await websocket.send_json(error_msg)
+            except Exception as send_error:
+                logger.error(f"Failed to send error message: {send_error}")
+            return
 
         while True:
             # Try to receive as JSON first (for button clicks), fall back to text
