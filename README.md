@@ -9,16 +9,22 @@ A proof-of-concept calculator built with Claude AI as the architect, dynamically
 ### Prerequisites
 - Python 3.11+
 - pip
+- **Anthropic API Key**: Obtain from https://console.anthropic.com (Claude Haiku 4.5 model)
 
 ### Initial Setup
 
-1. Create and activate virtual environment:
+1. Create `.env` file in the project root with your Anthropic API key:
+```bash
+echo "ANTHROPIC_API_KEY=sk-ant-api03-..." > .env
+```
+
+2. Create and activate virtual environment:
 ```bash
 python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-2. Install dependencies:
+3. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
